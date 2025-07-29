@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactive Feedback Decision Wizard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      background: #f8fafc;
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .wizard-container {
+      max-width: 480px;
+      margin: 50px auto 0 auto;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 2px 16px #21509718;
+      padding: 36px 26px 24px 26px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 {
+      color: #2563eb;
+      text-align: center;
+      margin-bottom: 26px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+    .wizard-question {
+      font-size: 1.08rem;
+      font-weight: 600;
+      color: #113c66;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .wizard-options {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .wizard-option-btn {
+      background: #eff6ff;
+      border: 2px solid #93c5fd;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #174386;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      text-align: left;
+    }
+    .wizard-option-btn:hover,
+    .wizard-option-btn:focus {
+      background: #dbeafe;
+      border-color: #2563eb;
+      outline: none;
+    }
+    .wizard-result {
+      background: #eafbe9;
+      border-left: 5px solid #40bc6d;
+      border-radius: 9px;
+      padding: 18px 20px;
+      margin-top: 14px;
+      font-weight: 500;
+      color: #176024;
+      font-size: 1.05rem;
+      text-align: center;
+    }
+    .wizard-restart-btn {
+      margin-top: 26px;
+      background: #f3f4f6;
+      color: #174386;
+      border: 1.5px solid #93c5fd;
+      border-radius: 7px;
+      padding: 10px 22px;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .wizard-restart-btn:hover {
+      background: #dbeafe;
+    }
+    @media (max-width:600px) {
+      .wizard-container { max-width: 99vw; padding: 12vw 1vw 6vw 1vw;}
+      h2 { font-size: 1.13rem;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wizard-container">
+    <h2>Feedback Decision Wizard</h2>
+    <div id="wizard-content"></div>
+  </div>
+  <script>
+    // ---- Decision tree model ----
+    const tree = {
+      text: "Is the feedback primarily formative (supports learning during the task) or summative (evaluates learning after the task)?",
+      options: [
+        {
+          label: "Formative",
+          next: {
+            text: "What is the intended function of this formative feedback?",
+            options: [
+              {
+                label: "To support skill development in real-time",
+                next: {
+                  text: "Is the feedback needed in class/lab/studio immediately during or after performance?",
+                  options: [
+                    {
+                      label: "Yes",
+                      next: {
+                        result:
+                          "Verbal feedback supported by notes or a checklist. If performance is recorded, consider screen-annotated video or voice comments for deeper review."
+                      }
+                    },
+                    {
+                      label: "No",
+                      next: {
+                        text: "Does the task require extended feedback on writing, problem-solving, or argumentation?",
+                        options: [
+                          {
+                            label: "Yes",
+                            next: {
+                              result:
+                                "Prioritise written feedback (inline, summary, or annotated rubric) with reflective prompts or feedforward tasks."
+                            }
+                          },
+                          {
+                            label: "No",
+                            next: {
+                              result:
+                                "Consider supplementing with video summary or optional tutorial debrief."
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                label: "To support reflective revision or deeper thinking",
+                next: {
+                  result:
+                    "Verbal feedback supported by notes or a checklist. If performance is recorded, consider screen-annotated video or voice comments for deeper review."
+                }
+              }
+            ]
+          }
+        },
+        {
+          label: "Summative",
+          next: {
+            text: "For summative feedback, which qualities are most important to preserve?",
+            options: [
+              {
+                label: "Transparency and alignment with marking criteria",
+                next: {
+                  text: "Is detailed documentation required for moderation, appeals, or institutional QA?",
+                  options: [
+                    {
+                      label: "Yes",
+                      next: {
+                        result:
+                          "Written comments aligned to rubric criteria; use standardised templates to ensure consistency. Consider using LMS-integrated tools (e.g., Turnitin QuickMarks, SpeedGrader, GradeMark)."
+                      }
+                    },
+                    {
+                      label: "No",
+                      next: {
+                        result:
+                          "Consider using LMS-integrated tools (e.g., Turnitin QuickMarks, SpeedGrader, GradeMark)."
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                label: "Opportunity for learner understanding and future application",
+                next: {
+                  text: "Do students need feedforward to apply insights to future tasks (e.g., scaffolded assignments, capstone projects)?",
+                  options: [
+                    {
+                      label: "Yes",
+                      next: {
+                        result:
+                          "Pair written feedback with digital summary (e.g., 2–3 min video/audio) emphasising transfer to next task. Encourage self-review by asking students to summarise or annotate their own feedback."
+                      }
+                    },
+                    {
+                      label: "No",
+                      next: {
+                        result:
+                          "Encourage self-review by asking students to summarise or annotate their own feedback."
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    };
+
+    // ---- Wizard rendering logic ----
+    let path = [];
+
+    function renderWizard() {
+      const container = document.getElementById('wizard-content');
+      let node = tree;
+      path.forEach(index => {
+        node = node.options[index].next;
+      });
+
+      // If at result (leaf)
+      if (node.result) {
+        container.innerHTML = `
+          <div class="wizard-result">
+            <b>Recommendation:</b><br>${node.result}
+          </div>
+          <button class="wizard-restart-btn" onclick="restartWizard()">Restart</button>
+        `;
+        return;
+      }
+
+      // Show question and options
+      let html = `<div class="wizard-question">${node.text}</div><div class="wizard-options">`;
+      node.options.forEach((opt, idx) => {
+        html += `<button class="wizard-option-btn" onclick="chooseOption(${idx})">${opt.label}</button>`;
+      });
+      html += `</div>`;
+      if (path.length > 0) {
+        html += `<button class="wizard-restart-btn" style="margin-top:18px" onclick="restartWizard()">Restart</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function chooseOption(idx) {
+      path.push(idx);
+      renderWizard();
+    }
+
+    function restartWizard() {
+      path = [];
+      renderWizard();
+    }
+
+    // Make functions available to HTML onclicks
+    window.chooseOption = chooseOption;
+    window.restartWizard = restartWizard;
+
+    // Initial render
+    renderWizard();
+  </script>
+</body>
+</html>
